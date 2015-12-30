@@ -1,0 +1,13 @@
+# First time set up
+* Install node.js from https://nodejs.org or your favourite package manager
+* Install all backend dependencies with `npm install`. This installs all the packages in package.json.
+TODO(eugenek): Add Bower and Grunt.
+
+# File hierarchy
+```
+./bin            # TODO
+./build          # TODO
+./public         # TODO
+./routes         # TODO
+./views          # TODO
+```

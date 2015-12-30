@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+  <title>{{ title }}</title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+</head>
+<body>
+  <h1> nodejs-starter by {{ author }} </h1>
+  <p> Below is some example text templated from a hash using Mustache: </p>
+  <p> {{ example }} </p>
+  <p> {{> partial }} </p>
+
+  <!-- <script type="text/javascript" src="/lib/jquery/jquery.js"></script>-->
+</body>
+
+</html>
+

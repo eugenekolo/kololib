@@ -1,0 +1,2 @@
+<h3> We're in a partial! </h3>
+<p> Have some templating in the partial too: {{ example_partial }}

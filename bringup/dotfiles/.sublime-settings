@@ -1,0 +1,21 @@
+{
+    "color_scheme": "Packages/Color Scheme - Default/Monokai.tmTheme",
+    "ensure_newline_at_eof_on_save": true,
+    "font_face": "Ubuntu Mono",
+    "font_size": 14,
+    "ignored_packages":
+    [
+        "Vintage"
+    ],
+    "rulers":
+    [
+        99
+    ],
+    "tab_completion": false,
+    "tab_size": 4,
+    "theme": "Cobalt2.sublime-theme",
+    "translate_tabs_to_spaces": true,
+    "trim_trailing_white_space_on_save": true,
+    "update_check": false
+}
+

@@ -12,12 +12,14 @@ def md5(s):
     return hashlib.md5(s).hexdigest()
 
 def isPrime(n):
-    """Simple check if a number is prime or not
+    """Simple, and slow check if a number is prime or not
     """
-    if n == 2 or n == 3: return True # 2 or 3
-    if n < 2 or n%2 == 0: return False # 1, negative or even
-    for i in range(3,int(math.sqrt(n))+1,2):
-        if n%i == 0:
+    if n == 2 or n == 3:
+        return True
+    if n < 2 or n % 2 == 0:
+        return False # 1, negative or even
+    for i in xrange(3, int(math.sqrt(n))+1, 2):
+        if n % i == 0:
             return False
     return True
 
@@ -29,18 +31,16 @@ def num(s):
     except ValueError:
         return float(s)
 
-
-def rotn(s, n):
+def rotn(s, n, letters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"):
     """Rotate a string's characters by n
     """
-    letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     ans = ""
     for c in s:
         if not c.isalpha():
             ans += c
             continue
-        ans += letters[(letters.index(c) + n) % 52]
-    print ans
+        ans += letters[(letters.index(c) + n) % len(letters)]
+    return ans
 
 class PrimeSieve():
     """Sieve of Eratosthenes, finds prime #s up to n in O(nloglogn)

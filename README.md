@@ -1,5 +1,4 @@
 # kololib
-Library of tools, testing stuff, and bring up material I use.
-You're free to use them as well.
+Library of stuff I've made, or use a reference mostly for bring up.
 
-Never do something twice. 
+**Never do something twice.**

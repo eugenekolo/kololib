@@ -117,3 +117,46 @@ def strxor(str1, str2):
     for (c1, c2) in zip(str1[:minlen], str2[:minlen]):
         ans += chr(ord(c1) ^ ord(c2))
     return ans
+
+class Singleton:
+    """A non-thread-safe helper class to ease implementing singletons.
+    This should be used as a decorator.
+
+    The decorated class can define one `__init__` function that
+    takes only the `self` argument. Other than that, there are
+    no restrictions that apply to the decorated class.
+
+    Limitations: The decorated class cannot be inherited from.
+
+    Example:
+    @Singleton
+    class SharedSecretHolder:
+        secret = "Foo"
+        def __init__(self):
+            print("SharedSecretHolder Singleton initalized!")
+            self.secret = "It's a secret!"
+
+    secret_holder1 = SharedSecretHolder.Instance()
+    secret_holder2 = SharedSecretHolder.Instance()
+    print(secret_holder2.secret)
+    secret_holder1.secret = "The secret changed, but the other instance picked it up!"
+    print(secret_holder2.secret)
+    """
+    def __init__(self, decorated):
+        self._decorated = decorated
+
+    def Instance(self):
+        """Use to get the single instance of the Singleton. Upon first use, it calls the singleton's
+        init function.
+        """
+        try:
+            return self._instance
+        except AttributeError:
+            self._instance = self._decorated()
+            return self._instance
+
+    def __call__(self):
+        raise TypeError('Singletons must be accessed through `Instance()`.')
+
+    def __instancecheck__(self, inst):
+        return isinstance(inst, self._decorated)

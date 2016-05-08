@@ -1,10 +1,168 @@
 #!/usr/bin/env python
 """The Kolobyte Python Library
+Tested on Python 2, sorry! Willing to accept testers using Python 3.
 """
 import hashlib
 import math
 import os
 import time
+import itertools
+import socket
+import sys
+import threading
+import re
+import select
+
+class Shoe():
+    """Socket wrapper to be netcat like.
+    Inspired by shoe.rb from crowell @ https://github.com/crowell/shoe.rb
+    """
+    def __init__(self, host, port):
+        self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self._socket.connect((host, port))
+        self._socket.setblocking(0)
+
+    def write(self, data):
+        """Write `data` to a shoe.
+        @note: Requires you to put a \n yourself.
+        """
+        self._socket.send(data)
+
+    def read_for(self, secs):
+        """Read from a shoe for `secs`
+        """
+        response = b""
+        timeout = time.time() + secs
+        while True:
+            is_ready = select.select([self._socket], [], [], secs)
+            try:
+                if is_ready:
+                    response += self._socket.recv(1)
+            except:
+                pass
+            if timeout < time.time():
+                break
+
+        return response
+
+    def read_until(self, mystr, is_regex=False):
+        """Read from a shoe until a `mystr` appears. Accepts regex.
+        """
+        response = b""
+        self._socket.setblocking(1)
+        if is_regex:
+            while not re.findall(mystr, response):
+                response += self._socket.recv(1)
+        else:
+            while response.endswith(mystr) != True:
+                response += self._socket.recv(1)
+        self._socket.setblocking(1)
+        return response
+
+    def read_until_end(self, secs=1):
+        """Read from a shoe until the end, defined by no recv for 1 second (default).
+        """
+        response = b""
+        timeout = time.time() + secs
+        while True:
+            is_ready = select.select([self._socket], [], [], secs)
+            try:
+                if is_ready:
+                    response += self._socket.recv(1)
+            except:
+                pass
+            if timeout < time.time():
+                break
+
+        return response
+
+    def tie(self):
+        """Tie the shoe and make it interactive.
+        """
+        self._socket.settimeout(None)
+        ## Constantly read off the shoe.
+        def _listen():
+            while True:
+                data = self._socket.recv(4096)
+                print(data)
+
+        t = threading.Thread(target = _listen)
+        t.daemon = True
+        t.start()
+
+        ## Constantly write any new input to the shoe.
+        while True:
+            payload = sys.stdin.readline()
+            if payload == "":
+                continue
+            self.write(payload)
+
+    def close(self):
+        """Close the shoe
+        """
+        self._socket.close()
+
+class PrimeSieve():
+    """Sieve of Eratosthenes, finds prime #s up to n in O(nloglogn)
+    Usage: primeSieve = PrimeSieve(500)
+           primeSieve.primes[25] = 233
+    """
+    def __init__(self, n):
+        """Init a sieve of primes up to `n`
+        """
+        # Assume [0,n) are all primes
+        primes = [True for i in range(0,n)]
+        for i in range(2,int(math.ceil(math.sqrt(n)))):
+            if primes[i] is True:
+                a = 0
+                while (i**2 + a*i < n): # Remove every multiple of i
+                    primes[i**2 + a*i] = False
+                    a += 1
+
+        self.primes = [i for i in range(2,n) if primes[i] is True]
+
+class Singleton:
+    """A non-thread-safe helper class to ease implementing singletons.
+    This should be used as a decorator.
+
+    The decorated class can define one `__init__` function that
+    takes only the `self` argument. Other than that, there are
+    no restrictions that apply to the decorated class.
+
+    Limitations: The decorated class cannot be inherited from.
+
+    Example:
+    @Singleton
+    class SharedSecretHolder:
+        secret = "Foo"
+        def __init__(self):
+            print("SharedSecretHolder Singleton initalized!")
+            self.secret = "It's a secret!"
+
+    secret_holder1 = SharedSecretHolder.Instance()
+    secret_holder2 = SharedSecretHolder.Instance()
+    print(secret_holder2.secret)
+    secret_holder1.secret = "The secret changed, but the other instance picked it up!"
+    print(secret_holder2.secret)
+    """
+    def __init__(self, decorated):
+        self._decorated = decorated
+
+    def Instance(self):
+        """Use to get the single instance of the Singleton. Upon first use, it calls the singleton's
+        init function.
+        """
+        try:
+            return self._instance
+        except AttributeError:
+            self._instance = self._decorated()
+            return self._instance
+
+    def __call__(self):
+        raise TypeError('Singletons must be accessed through `Instance()`.')
+
+    def __instancecheck__(self, inst):
+        return isinstance(inst, self._decorated)
 
 def md5(s):
     """Simpler md5sum a string
@@ -41,25 +199,6 @@ def rotn(s, n, letters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"):
             continue
         ans += letters[(letters.index(c) + n) % len(letters)]
     return ans
-
-class PrimeSieve():
-    """Sieve of Eratosthenes, finds prime #s up to n in O(nloglogn)
-    Usage: primeSieve = PrimeSieve(500)
-           primeSieve.primes[25] = 233
-    """
-    def __init__(self, n):
-        """Init a sieve of primes up to `n`
-        """
-        # Assume [0,n) are all primes
-        primes = [True for i in range(0,n)]
-        for i in range(2,int(math.ceil(math.sqrt(n)))):
-            if primes[i] is True:
-                a = 0
-                while (i**2 + a*i < n): # Remove every multiple of i
-                    primes[i**2 + a*i] = False
-                    a += 1
-
-        self.primes = [i for i in range(2,n) if primes[i] is True]
 
 def connect_pop3(mailserver, username, password):
     """Connect to a pop3 mailserver and return a handle to it
@@ -117,48 +256,6 @@ def strxor(str1, str2):
         ans += chr(ord(c1) ^ ord(c2))
     return ans
 
-class Singleton:
-    """A non-thread-safe helper class to ease implementing singletons.
-    This should be used as a decorator.
-
-    The decorated class can define one `__init__` function that
-    takes only the `self` argument. Other than that, there are
-    no restrictions that apply to the decorated class.
-
-    Limitations: The decorated class cannot be inherited from.
-
-    Example:
-    @Singleton
-    class SharedSecretHolder:
-        secret = "Foo"
-        def __init__(self):
-            print("SharedSecretHolder Singleton initalized!")
-            self.secret = "It's a secret!"
-
-    secret_holder1 = SharedSecretHolder.Instance()
-    secret_holder2 = SharedSecretHolder.Instance()
-    print(secret_holder2.secret)
-    secret_holder1.secret = "The secret changed, but the other instance picked it up!"
-    print(secret_holder2.secret)
-    """
-    def __init__(self, decorated):
-        self._decorated = decorated
-
-    def Instance(self):
-        """Use to get the single instance of the Singleton. Upon first use, it calls the singleton's
-        init function.
-        """
-        try:
-            return self._instance
-        except AttributeError:
-            self._instance = self._decorated()
-            return self._instance
-
-    def __call__(self):
-        raise TypeError('Singletons must be accessed through `Instance()`.')
-
-    def __instancecheck__(self, inst):
-        return isinstance(inst, self._decorated)
 
 def timeme(method):
     """@timeme decorator. Place before any function you want timed.
@@ -228,3 +325,15 @@ def stack_overflower(padlen, noplen, payload = None):
     pad = cyclic_pattern(padlen)
     nopsled = "\x90"*noplen
     return pad+nopsled+payload
+
+def bruteforce(charset, minlength, maxlength):
+    """Efficient dumb bruteforcer generator.
+
+    Example:
+        # Generate every string 3 to 10 characters long, from the ascii_lowercase charset.
+        for word in bruteforce(string.ascii_lowercase, 3, 10):
+            print(word)
+    """
+    return (''.join(candidate)
+        for candidate in itertools.chain.from_iterable(itertools.product(charset, repeat=i)
+        for i in range(minlength, maxlength + 1)))

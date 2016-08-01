@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 """The Kolobyte Python Library
+This library is a collection of python code to make your life easier, more efficient,
+and just help out with writing other code. Run `help("kolobyte")`, for documentation.
+
 Tested on Python 2, sorry! Willing to accept testers using Python 3.
 """
 import hashlib
@@ -16,6 +19,9 @@ import select
 class Shoe():
     """Socket wrapper to be netcat like.
     Inspired by shoe.rb from crowell @ https://github.com/crowell/shoe.rb
+
+    Example:
+        Check the test in test_kolobyte.py.
     """
     def __init__(self, host, port):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -80,7 +86,7 @@ class Shoe():
         """Tie the shoe and make it interactive.
         """
         self._socket.settimeout(None)
-        ## Constantly read off the shoe.
+        # Constantly read off the shoe.
         def _listen():
             while True:
                 data = self._socket.recv(4096)
@@ -90,7 +96,7 @@ class Shoe():
         t.daemon = True
         t.start()
 
-        ## Constantly write any new input to the shoe.
+        # Constantly write any new input to the shoe.
         while True:
             payload = sys.stdin.readline()
             if payload == "":
@@ -337,3 +343,34 @@ def bruteforce(charset, minlength, maxlength):
     return (''.join(candidate)
         for candidate in itertools.chain.from_iterable(itertools.product(charset, repeat=i)
         for i in range(minlength, maxlength + 1)))
+
+def entropy(data):
+    """Calculates the Shannon entropy of data.
+    """
+    freqList = [0]*len(data)
+    for b in range(256):
+        ctr = 0.0
+        for byte in data:
+            if ord(byte) == b:
+                ctr += 1
+        freqList.append(float(ctr) / len(data))
+    ent = 0.0
+    for freq in freqList:
+        if freq > 0:
+            ent = ent + (freq * math.log(freq, 2))
+    ent = -ent
+    return ent
+
+def pretty_json_dump(d):
+    """Pretty dumps a dictionary as a JSON string
+    """
+    try:
+        from flask import json
+    except ImportError as e:
+        print("[ERROR] Try pip install flask.")
+        raise
+
+    return json.dumps(d, indent=4, separators=(',',': '))
+
+if __name__ == "__main__":
+    help("kolobyte")

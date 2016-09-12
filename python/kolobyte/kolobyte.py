@@ -15,6 +15,8 @@ import sys
 import threading
 import re
 import select
+import random
+import string
 
 class Shoe():
     """Socket wrapper to be netcat like.
@@ -371,6 +373,20 @@ def pretty_json_dump(d):
         raise
 
     return json.dumps(d, indent=4, separators=(',',': '))
+
+def random_string(n, max_size=False, char_pool=string.ascii_lowercase + string.digits):
+    """Returns a random string of [char_pool] of size `n`. 
+    If max_size is True, then returns a random string of up to size `n`, minimum 1.
+    """
+    if max_size:
+        n = random.randint(1, n)
+    
+    rand_str = ""
+    for i in range(n):
+        rand_c = random.choice(char_pool)
+        rand_str += rand_c
+
+    return rand_str        
 
 if __name__ == "__main__":
     help("kolobyte")

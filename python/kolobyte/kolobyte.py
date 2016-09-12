@@ -388,5 +388,14 @@ def random_string(n, max_size=False, char_pool=string.ascii_lowercase + string.d
 
     return rand_str        
 
+def byte_to_hex_str(n):
+    """Returns a 2 character hex string for a given byte value `n`.
+    """
+    if n > 255 or n < 0:
+        raise ValueError()
+
+    return '%02x' % n
+    
+    
 if __name__ == "__main__":
     help("kolobyte")
